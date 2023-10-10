@@ -1,5 +1,6 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include "../utils.h"
 
 using namespace std;
 
@@ -147,26 +148,7 @@ public:
 };
 
 
-struct Graph{
-    int N, E;
-    vector<pair<int, int>>* edges;
-    bool Dgraf;
-
-    Graph(int N, int E, bool Dgraf=false){
-        this->N = N;
-        this->E = E;
-        this->Dgraf=Dgraf;
-        this->edges = new vector<pair<int, int>>[N];
-    }
-
-    void insertEdge(int a, int b, int wt)
-    {
-        edges[a-1].push_back(make_pair(b-1, wt));
-        if (!Dgraf) edges[b-1].push_back(make_pair(a-1, wt));
-    }
-
-};
-
+/*
 int isOpen(int open[], int n)
 {
     for (int i = 0; i < n; i++)
@@ -230,79 +212,136 @@ void dijkstra(Graph G, int iN)
     }
     cout << endl;
 }
+*/
 
-//Dijkstra com Priority Queue
+//Dijkstra with Priority Queue
 pair<vector<int>, vector<int>> dijkstraPQ(Graph G, int iN)
 {
-    //Lista de distâncias, pais e condição (aberto ou fechado)
-    vector<int> d(G.N), p(G.N), open(G.N);
-    fill_n(d.begin(), G.N, INT_MAX);
-    fill_n(p.begin(), G.N, -1);
-    fill_n(open.begin(), G.N, 1);
-    //Distância do vértice inicial = 0
+    int N = G.getNodeCount();
+    //Adjacency, parents and condition list (open or closed)
+    vector<int> d(N), p(N), open(N);
+    fill_n(d.begin(), N, INT_MAX);
+    fill_n(p.begin(), N, -1);
+    fill_n(open.begin(), N, 1);
+    //Initial node distance = 0
     d[iN] = 0;
-    // Fila de prioridade
+    // Priority Queue
     PQueue fila;
-    //Adiciona na fila o vértice inicial e a distância
+    //Add initial node and distance to queue
     fila.add({iN, 0});
-    //Enquanto houver itens na fila
+    //While the queue is not empty
     while (!fila.isEmpty()){
-        //Tira o par vértice e distancia menores da fila
+        //Remove the node distance pair from queue
         pair<int, int> vertcost = fila.poll();
-        //Separa
+        //Split
         int vert = vertcost.first, minValue = vertcost.second;
-        //Seta o vértice como fechado
+        //Set node to closed
         open[vert] = 0;
-        // Se já temos a melhor distância até o vértice, ignora
+        //If the distance to the node is already less than the distance from the pair, ignore
         if (!(d[vert]<minValue)) 
         {  
-            //Percorre as adjacências
-            for (auto adj: G.edges[vert])
+            //Run through the edges
+            for (auto adj: G.getAdjList()[vert])
             {
-                //se tiver aberto
+                //If it is open
                 if(open[adj.first])
                 {
-                    //Calcula a nova distância até ele
+                    //Calculate the new distance to the node
                     int newDist = d[vert] + adj.second;
-                    //Se for melhor que a atual
+                    //If its better than the actual distance
                     if (newDist < d[adj.first])
                     {
-                        //Adiciona o pai
+                        //Update path
                         p[adj.first] = vert;
-                        //Atualiza a distância
+                        //Update distance
                         d[adj.first] = newDist;
-                        //Adiciona na fila
+                        //Add to the queue
                         fila.add({adj.first, newDist});
                     }
                 }
             }
         }        
     }
-    //Retorna a lista de distâncias e o caminho
+    //Return a pair of vectors, distance and parents
     return {d, p};
 }
 
-int main(){
+int main(int argc, char *argv[]){
+    string input_file = "";
+    string output_file = "";
+    int startVertex = 0;
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-h") == 0)
+        {
+            cout << "Help:" << endl;
+            cout << "-h: mostra o help" << endl;
+            cout << "-o <arquivo>: redireciona a saida para o 'arquivo'" << endl;
+            cout << "-f <arquivo>: indica o 'arquivo' que contém o grafo de entrada" << endl;
+            cout << "-s: mostra a solução (em ordem crescente)" << endl;
+            return 0;
+        }
+        else if (strcmp(argv[i], "-o") == 0 && i < argc - 1)
+        {
+            output_file = argv[++i];
+        }
+        else if (strcmp(argv[i], "-f") == 0 && i < argc - 1)
+        {
+            input_file = argv[++i];
+        }
+        else if (strcmp(argv[i], "-i") == 0 && i < argc - 1)
+        {
+            startVertex = atoi(argv[++i]);
+        }
+    }
+
+    if (input_file == "")
+    {
+        cerr << "No input file specified. Use the -f parameter." << endl;
+        return 1;
+    }
+    
+    ifstream fin(input_file);
+    if (!fin)
+    {
+        cerr << "Could not open input file: " << input_file << endl;
+        return 1;
+    }
+
     int N, E;
-    cin >> N >> E;
+    fin >> N >> E;
     Graph G(N, E);
     int a, b, wt;
     for (int e = 0; e < E; e++)
     {
-        cin >> a >> b >> wt;
+        fin >> a >> b >> wt;
         G.insertEdge(a, b, wt);
     }
-/*
-    for (int i = 0; i < N; i++)
-    {
-        for (auto adj: G.edges[i])
-        {
-            cout << "(" << i << ", " << adj.first << ", " << adj.second << ")" << endl; 
-        }
-    }
-*/
+    fin.close();
+    pair<vector<int>,vector<int>> res = dijkstraPQ(G, startVertex);
+    vector<int> dist = res.first;
+    vector<int> parent = res.second;
 
-    dijkstraPQ(G, INIT_NODE);
+    if (!(output_file==""))
+    {
+        ofstream fout(output_file);
+        if (!fout)
+        {
+            cerr << "Could not open output file:" << output_file << endl;
+            return 1;
+        }
+        for (int i = 0; i < N; i++) {
+            fout << i+1 << ":" << dist[i] << " ";
+        }
+        fout << endl;
+        fout.close();
+    }
+    
+    for (int i = 0; i < N; i++) {
+        cout << i+1 << ":" << dist[i] << " ";
+    }
+    cout << endl;
 
 
     return 0;

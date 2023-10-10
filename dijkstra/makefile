@@ -6,7 +6,7 @@ CFLAGS  = -Wall
 # The build target 
 TARGET = dijkstra
 
-all: $(TARGET) exec
+all: $(TARGET)
 
 $(TARGET): $(TARGET).cpp
 			$(CC) $(CFLAGS) -o $(TARGET).bin $(TARGET).cpp

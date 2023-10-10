@@ -1,5 +1,6 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include "../utils.h"
 
 using namespace std;
 
@@ -13,11 +14,11 @@ private:
     int heapSize = 0;
 
     // Lista para os elementos na heap
-    vector<pair<pair<int, int>, int>> heap;
+    vector<edge> heap;
 
     int less(int i, int j)
     {
-        return heap.at(i).second<=heap.at(j).second;
+        return heap.at(i).weight<=heap.at(j).weight;
     }
     //UP
     void swim(int k)
@@ -52,25 +53,25 @@ private:
 
     void swap(int i, int j)
     {
-        pair<pair<int, int>, int> aux = heap[j];
+        edge aux = heap[j];
         heap[j] = heap[i];
         heap[i] = aux;
     }
-    pair<pair<int, int>, int> removeAt(int i)
+    edge removeAt(int i)
     {
-        if (isEmpty()) return {{-1,-1}, -1};
+        if (isEmpty()) return {-1, -1, -1};
         heapSize--;
-        pair<pair<int, int>, int> removido = heap[i];
+        edge removido = heap[i];
         this->swap(i, heapSize);
         heap.pop_back();
 
         if (i == heapSize) return removido;
 
-        pair<pair<int, int>, int> elem = heap[i];
+        edge elem = heap[i];
 
         sink(i);
 
-        if (heap[i]==elem) swim(i);
+        if (heap[i].equals(elem)) swim(i);
 
         return removido;
 
@@ -86,27 +87,27 @@ public:
         return heapSize;
     }
 
-    pair<pair<int, int>, int> peek(){
-        if (isEmpty()) return {{-1,-1}, -1};
+    edge peek(){
+        if (isEmpty()) return {-1, -1, -1};
         return heap.at(0);
     }
 
-    pair<pair<int, int>, int> poll()
+    edge poll()
     {
         return removeAt(0);
     }
 
     //Linear
-    int contains(pair<pair<int, int>, int> elem)
+    int contains(edge elem)
     {
         for (int i = 0; i < heapSize; i++)
         {
-            if (heap.at(i)==elem) return 1;
+            if (heap[i].equals(elem)) return 1;
         }
         return 0;
     }
 
-    void add(pair<pair<int, int>, int> elem)
+    void add(edge elem)
     {
         heap.push_back(elem);
         swim(heapSize);
@@ -115,11 +116,11 @@ public:
 
 
 
-    int remove (pair<pair<int, int>, int> elem)
+    int remove (edge elem)
     {
         for (int i = 0; i < heapSize; i++)
         {
-            if (elem == heap[i])
+            if (heap[i].equals(elem))
             {
                 removeAt(i);
                 return 1;
@@ -144,48 +145,24 @@ public:
 
 };
 
-struct Graph{
-    //Nº de vértices e arestas
-    int N, E;
-    //Vetor de adjacências [[{V, Peso}]]
-    vector<pair<int, int>>* edges;
-    //Flag de grafo direcionado
-    bool Dgraf;
-    //Construtor (Número de vértices, arestas e flag de Digrafo (default = false))
-    Graph(int N, int E, bool Dgraf=false){
-        this->N = N;
-        this->E = E;
-        this->Dgraf=Dgraf;
-        this->edges = new vector<pair<int, int>>[N];
-    }
-    //Insere arestas no grafo
-    void insertEdge(int a, int b, int wt)
-    {
-        //Insere a ida, se não for digrafo insere a volta
-        edges[a-1].push_back(make_pair(b-1, wt));
-        if (!Dgraf) edges[b-1].push_back(make_pair(a-1, wt));
-    }
-
-};
-
 //Adiciona as arestas adjacêntes ao vértice index à fila de prioridade e marca-o como visitado
 void addEdges(int index, vector<int>& visited, PQueue* fila, Graph G)
 {
     visited[index] = 1;
-    for (auto adj: G.edges[index])
-    if (!visited[adj.first]) fila->add({{index, adj.first},adj.second});
+    for (auto adj: G.getAdjList()[index])
+    if (!visited[adj.first]) fila->add({index, adj.first, adj.second});
 }
 
-vector<pair<pair<int, int>, int>> prim(Graph G, int iN)
+vector<edge> prim(Graph G, int iN)
 {
     //Visitados
-    vector<int> visited(G.N); fill(visited.begin(), visited.end(), 0);
+    vector<int> visited(G.getNodeCount()); fill(visited.begin(), visited.end(), 0);
     //Arestas da AGM {{Vi, Vf}, Peso}
-    vector<pair<pair<int, int>, int>> MSTEdges;
+    vector<edge> MSTEdges;
     // Fila de prioridade
     PQueue fila;
     // Contador de arestas e quantidade de arestas da AGM
-    int edgesC = 0, edgesMST = G.N-1;
+    int edgesC = 0, edgesMST = G.getNodeCount()-1;
     
     //Adiciona as arestas do vértice inicial
     addEdges(iN, visited, &fila, G);
@@ -194,14 +171,14 @@ vector<pair<pair<int, int>, int>> prim(Graph G, int iN)
     while (!fila.isEmpty() && edgesC != edgesMST)
     {
         //Pega a melhor aresta na fila
-        pair<pair<int,int>,int> edge = fila.poll();
+        edge e = fila.poll();
         //Guarda a informação do vértice alvo
-        int index = edge.first.second;
+        int index = e.node2;
         //Se não tiver sido visitado
         if (!visited[index])
         {
             //Adiciona nas arestas da AGM
-            MSTEdges.push_back(edge);
+            MSTEdges.push_back(e);
             //Incrementa contador
             edgesC++;
             //Adiciona as arestas adjacêntes ao vértice alvo na fila de p.
@@ -214,35 +191,95 @@ vector<pair<pair<int, int>, int>> prim(Graph G, int iN)
     return MSTEdges;
 }
 
-int main(){
+int main(int argc, char *argv[]){
+    string input_file = "";
+    string output_file = "";
+    bool ans = false;
+    int startVertex = 0;
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-h") == 0)
+        {
+            cout << "Help:" << endl;
+            cout << "-h: mostra o help" << endl;
+            cout << "-o <arquivo>: redireciona a saida para o 'arquivo'" << endl;
+            cout << "-f <arquivo>: indica o 'arquivo' que contém o grafo de entrada" << endl;
+            cout << "-s: mostra a solução (em ordem crescente)" << endl;
+            return 0;
+        }
+        else if (strcmp(argv[i], "-o") == 0 && i < argc - 1)
+        {
+            output_file = argv[++i];
+        }
+        else if (strcmp(argv[i], "-f") == 0 && i < argc - 1)
+        {
+            input_file = argv[++i];
+        }
+        else if (strcmp(argv[i], "-s") == 0)
+        {
+            ans = true;
+        }
+        else if (strcmp(argv[i], "-i") == 0 && i < argc - 1)
+        {
+            startVertex = atoi(argv[++i]);
+        }
+    }
+
+    if (input_file == "")
+    {
+        cerr << "No input file specified. Use the -f parameter." << endl;
+        return 1;
+    }
+    
+    ifstream fin(input_file);
+    if (!fin)
+    {
+        cerr << "Could not open input file: " << input_file << endl;
+        return 1;
+    }
+
     int N, E;
-    cin >> N >> E;
+    fin >> N >> E;
     Graph G(N, E);
     int a, b, wt;
     for (int e = 0; e < E; e++)
     {
-        cin >> a >> b >> wt;
+        fin >> a >> b >> wt;
         G.insertEdge(a, b, wt);
     }
-/*
-    for (int i = 0; i < N; i++)
+    fin.close();
+    vector<edge> MST = prim(G, startVertex);
+    int MSTCost = 0;
+    string res;
+    for (auto e: MST)
     {
-        for (auto adj: G.edges[i])
+        res += "(" + to_string(e.node1+1) + "," + to_string(e.node2+1) + ") ";
+        MSTCost += e.weight;
+    }
+    if (!(output_file==""))
+    {
+        ofstream fout(output_file);
+        if (!fout)
         {
-            cout << "(" << i << ", " << adj.first << ", " << adj.second << ")" << endl; 
+            cerr << "Could not open output file:" << output_file << endl;
+            return 1;
+        }
+        if(ans)
+        {
+            fout << res << endl;
+        }
+        else
+        {
+            fout << MSTCost << endl;
         }
     }
-*/
-    int MSTCost = 0;
-    vector<pair<pair<int, int>, int>> MST = prim(G, INIT_NODE);
-    for (auto edge: MST)
-    {
-        cout << "(" << edge.first.first << "," << edge.first.second << ") ";
-        MSTCost += edge.second;
+    if(ans){
+        cout << res << endl;
     }
-    cout << endl;
-    cout << MSTCost << endl;
-
+    else{
+        cout << MSTCost << endl;
+    }
 
 
     return 0;

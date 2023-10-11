@@ -279,7 +279,6 @@ int main(int argc, char *argv[]){
             cout << "-h: mostra o help" << endl;
             cout << "-o <arquivo>: redireciona a saida para o 'arquivo'" << endl;
             cout << "-f <arquivo>: indica o 'arquivo' que contém o grafo de entrada" << endl;
-            cout << "-s: mostra a solução (em ordem crescente)" << endl;
             return 0;
         }
         else if (strcmp(argv[i], "-o") == 0 && i < argc - 1)

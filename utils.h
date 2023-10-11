@@ -49,6 +49,7 @@ public:
         adj[a-1].push_back(std::make_pair(b-1, wt));
         if (!Dgraf) adj[b-1].push_back(std::make_pair(a-1, wt));
         edges.push_back({a-1, b-1, wt});
+        if (!Dgraf) edges.push_back({b-1, a-1, wt});
     }
 
     int getNodeCount()

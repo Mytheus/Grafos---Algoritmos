@@ -220,7 +220,7 @@ pair<vector<int>, vector<int>> dijkstraPQ(Graph G, int iN)
     int N = G.getNodeCount();
     //Adjacency, parents and condition list (open or closed)
     vector<int> d(N), p(N), open(N);
-    fill_n(d.begin(), N, INT_MAX);
+    fill_n(d.begin(), N, INT_MAX/2);
     fill_n(p.begin(), N, -1);
     fill_n(open.begin(), N, 1);
     //Initial node distance = 0
@@ -331,17 +331,19 @@ int main(int argc, char *argv[]){
             return 1;
         }
         for (int i = 0; i < N; i++) {
-            fout << i+1 << ":" << dist[i] << " ";
+            if (dist[i]==INT_MAX/2) fout << i+1 << ":" << -1 << " ";
+            else fout << i+1 << ":" << dist[i] << " ";
         }
         fout << endl;
         fout.close();
     }
-    
-    for (int i = 0; i < N; i++) {
-        cout << i+1 << ":" << dist[i] << " ";
+    else{
+        for (int i = 0; i < N; i++) {
+            if (dist[i]==INT_MAX/2) cout << i+1 << ":" << -1 << " ";
+            else cout << i+1 << ":" << dist[i] << " ";
+        }
+        cout << endl;
     }
-    cout << endl;
-
 
     return 0;
 }

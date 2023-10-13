@@ -186,7 +186,7 @@ vector<edge> prim(Graph G, int iN)
         }
     }
     //Caso não exista AGM
-    if (edgesC!=edgesMST) return {};
+    //if (edgesC!=edgesMST) return {};
     //Retorna arestas da AGM (Trios {{Vi, Vf},Peso})
     return MSTEdges;
 }
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]){
     string input_file = "";
     string output_file = "";
     bool ans = false;
-    int startVertex = 0;
+    int startVertex = 1;
 
     for (int i = 1; i < argc; i++)
     {
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]){
         G.insertEdge(a, b, wt);
     }
     fin.close();
-    vector<edge> MST = prim(G, startVertex);
+    vector<edge> MST = prim(G, startVertex-1);
     int MSTCost = 0;
     string res;
     for (auto e: MST)
@@ -274,13 +274,13 @@ int main(int argc, char *argv[]){
             fout << MSTCost << endl;
         }
     }
+    else{
     if(ans){
         cout << res << endl;
     }
     else{
         cout << MSTCost << endl;
     }
-
-
+    }
     return 0;
 }

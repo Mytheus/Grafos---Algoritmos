@@ -118,12 +118,13 @@ int main(int argc, char *argv[])
             fout << MSTCost << endl;
         }
     }
-
-    if(ans){
-        cout << res << endl;
-    }
     else{
-        cout << MSTCost << endl;
+        if(ans){
+            cout << res << endl;
+        }
+        else{
+            cout << MSTCost << endl;
+        }
     }
     return 0;
 }

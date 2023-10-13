@@ -23,7 +23,12 @@ vector<int> bellmanFord(Graph G, int iN)
         {
             //Se a distância até u + peso da aresta uv < distancia até v
             //Então distancia até v = distancia até u + peso da aresta uv
-            if (d[e.node1] + e.weight < d[e.node2]) d[e.node2] = d[e.node1] + e.weight;
+            if (d[e.node1]!=(INT_MAX/2) && d[e.node1] + e.weight < d[e.node2]) d[e.node2] = d[e.node1] + e.weight;
+            // for (int i = 0; i < N; i++)
+            // {
+            //     cout << d[i] << " ";
+            // }
+            // cout << endl;
         }
     }
     for (int i = 0; i < N-1; i++)
@@ -32,7 +37,11 @@ vector<int> bellmanFord(Graph G, int iN)
         {
             //Se a distância até u + peso da aresta uv < distancia até v
             //Então distancia até v = distancia até u + peso da aresta uv
-            if (d[e.node1] + e.weight < d[e.node2]) d[e.node2] = -(INT_MAX/2);
+            if (d[e.node1]!=(INT_MAX/2) && d[e.node1] + e.weight < d[e.node2])
+            {
+                d[e.node2] = -(INT_MAX/2);
+                return {};
+            }
         }
     }
 
@@ -42,7 +51,7 @@ vector<int> bellmanFord(Graph G, int iN)
 int main(int argc, char *argv[]){
     string input_file = "";
     string output_file = "";
-    int startVertex = 0;
+    int startVertex = 1;
 
     for (int i = 1; i < argc; i++)
     {
@@ -82,7 +91,7 @@ int main(int argc, char *argv[]){
     }
     int N, E;
     fin >> N >> E;
-    Graph G(N, E);
+    Graph G(N, E, true);
     int a, b, wt;
     for (int e = 0; e < E; e++)
     {
@@ -90,28 +99,50 @@ int main(int argc, char *argv[]){
         G.insertEdge(a, b, wt);
     }
     fin.close();
-    vector<int> dist = bellmanFord(G, startVertex);
-
-    if (!(output_file==""))
-    {
-        ofstream fout(output_file);
-        if (!fout)
+    vector<int> dist = bellmanFord(G, startVertex-1);
+    if (dist.size()>0){
+        if (!(output_file==""))
         {
-            cerr << "Could not open output file:" << output_file << endl;
-            return 1;
+            ofstream fout(output_file);
+            if (!fout)
+            {
+                cerr << "Could not open output file:" << output_file << endl;
+                return 1;
+            }
+            fout << "I = Inaccessible" << endl;
+            for (int i = 0; i < N; i++) {
+                fout << i+1 << ":" << dist[i] << " ";
+            }
+            fout << endl;
+            fout.close();
         }
+        cout << "I = Inaccessible" << endl;
         for (int i = 0; i < N; i++) {
-            fout << i+1 << ":" << dist[i] << " ";
+            if (dist[i] == (INT_MAX)/2) cout << i+1 << ":" << "I" << " ";
+            else cout << i+1 << ":" << dist[i] << " ";
         }
-        fout << endl;
-        fout.close();
-    }
-    
-    for (int i = 0; i < N; i++) {
-        cout << i+1 << ":" << dist[i] << " ";
-    }
-    cout << endl;
-
+        cout << endl;
+        }
+        else
+        {
+            if (!(output_file==""))
+            {
+                ofstream fout(output_file);
+                if (!fout)
+                {
+                    cerr << "Could not open output file:" << output_file << endl;
+                    return 1;
+                }
+                for (int i = 0; i < N; i++) {
+                    fout << "The graph has a negative cycle!";
+                }
+                fout << endl;
+                fout.close();
+            }
+            else{
+                cout << "The graph has a negative cycle!" << endl;
+            }
+        }
 
     return 0;
 }

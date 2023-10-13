@@ -24,7 +24,7 @@ Project for the Graph Theory course with the purpose of presenting four algorith
 
   ```make dijkstra```
   
-  ```make bellman```
+  ```make bellmanFord```
   
   ```make prim```
   
